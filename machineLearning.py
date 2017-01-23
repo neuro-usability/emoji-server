@@ -7,7 +7,7 @@ import numpy as np
 from sklearn import svm
 import scipy.spatial
 
-path = 'data'
+path = './data/'
 # set to 0 if not wanted
 outlierDetection = 1
 # how many data points should be deleted?
@@ -34,12 +34,18 @@ def createModel():
 
     # fit SVM model
     clfSVM.fit(X,Y)
-    print("done creating Model!")
+    print("done creating Model! \n")
+    # with open("./test.json") as data_file:
+        # print(data_file);
+        # print(json.load(data_file));
+        # print(clfSVM.predict(object_to_column(json.load(data_file))))
     return
 
 # predict one data point and measure the time it takes
 def predictEmoji(clientData):
-    return clfSVM.predict(clientData)
+    dataColumn = object_to_column(clientData)
+    # returns string with emoji name, e.g. "joy"
+    return clfSVM.predict(dataColumn)
 
 # function to get a flat structure
 def flatten_json(y):
@@ -59,6 +65,23 @@ def flatten_json(y):
 
     flatten(y)
     return out
+
+def object_to_column(dataObject):
+    dataColumn = []
+    # jsonObject = json.loads(dataObject)
+    # print("==================================================")
+    # print(dataObject)
+    # print("==================================================")
+    # print(dataObject["emojis"])
+    # print("==================================================")
+    del dataObject["emojis"]["dominantEmoji"]
+    # print(dataObject["emojis"])
+    flatObject = flatten_json(dataObject)
+    for key, value in flatObject.items():
+        dataColumn.append(float(value))
+    # print("==================================================")
+    # print(dataColumn)
+    return dataColumn
 
 # convert json data in for ML suitable form
 def get_training_data(path):

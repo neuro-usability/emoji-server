@@ -1,22 +1,24 @@
 #!/usr/bin/python
 from http.server import BaseHTTPRequestHandler,HTTPServer
 import json
-# from machineLearning import createModel, predictEmoji
+from machineLearning import createModel, predictEmoji
 
 PORT_NUMBER = 3456
 emojiList = {"derp": 12354, "herp": 34521}
 
-# createModel()
+createModel()
 
 
 #This class will handles any incoming request
 class myHandler(BaseHTTPRequestHandler):
 	def do_POST(self):
-		print("recieved POST request")
+		print("received POST request")
 		length = int(self.headers['Content-Length'])
-		receivedData = self.rfile.read(length).decode()
-		print(receivedData)
-		predictedEmoji = predictEmoji(receivedData)
+		print("    \n")
+		receivedData = self.rfile.read(length);
+		decodedData = json.loads(receivedData.decode("utf-8"))
+		print(decodedData)
+		predictedEmoji = predictEmoji(decodedData)
 
 		self.send_response(200)
 		self.send_header('Content-type','application/json')
