@@ -17,55 +17,21 @@ class myHandler(BaseHTTPRequestHandler):
 		print("    \n")
 		receivedData = self.rfile.read(length);
 		decodedData = json.loads(receivedData.decode("utf-8"))
-		print(decodedData)
 		predictedEmoji = predictEmoji(decodedData)
+		print("\npredicted emoji:", predictedEmoji)
 
 		self.send_response(200)
-		self.send_header('Content-type','application/json')
+		self.send_header('Content-type','text/plain')
 		self.send_header("Access-Control-Allow-Origin", "*")
 		self.end_headers()
-		self.wfile.write(predictedEmoji)
+		self.wfile.write(json.dumps(predictedEmoji.tolist()).encode())
 		return
-	#Handler for the GET requests
-	# def do_GET(self):
-	# 	self.send_response(200)
-	# 	self.send_header('Content-type','application/json')
-	# 	self.send_header("Access-Control-Allow-Origin", "*")
-	# 	self.end_headers()
-	# 	# emojiList = predictEmoji(clientData)
-	# 	# print(123455)
-	# 	self.wfile.write(json.dumps(emojiList).encode())
-	# 	#self.send_response(200, "fuckyouuuu")
-	# 	return
-
-
-	# def do_POST(self):
-    # # if None != re.search('/api/v1/addrecord/*', self.path):
-    # #   ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
-    # #   if ctype == 'application/json':
-	# 	print(self.rfile.read())
-	# 	print("lolll")
-    #     # length = int(self.headers.getheader('content-length'))
-    #     # data = cgi.parse_qs(self.rfile.read(length), keep_blank_values=1)
-    #     # recordID = self.path.split('/')[-1]
-    #     # LocalData.records[recordID] = data
-    #     # print "record %s is added successfully" % recordID
-    # #   else:
-    # #     data = {}
-	# 	self.send_response(200)
-	# 	self.end_headers()
-    # # else:
-    # #   self.send_response(403)
-    # #   self.send_header('Content-Type', 'application/json')
-    # #   self.end_headers()
-    # return
-
 
 try:
 	#Create a web server and define the handler to manage the
 	#incoming request
 	server = HTTPServer(('', PORT_NUMBER), myHandler)
-	print('Started httpserver on port ' , PORT_NUMBER)
+	print('Started HTTP server on port', PORT_NUMBER)
 
 	#Wait forever for incoming htto requests
 	server.serve_forever()

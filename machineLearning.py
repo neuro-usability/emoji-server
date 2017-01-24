@@ -17,6 +17,8 @@ amountComponents = 20
 
 def createModel():
     print("started creating Model...")
+    global clfSVM
+
     # get data
     (X, Y) = get_training_data(path)
 
@@ -35,10 +37,12 @@ def createModel():
     # fit SVM model
     clfSVM.fit(X,Y)
     print("done creating Model! \n")
+    
     # with open("./test.json") as data_file:
         # print(data_file);
         # print(json.load(data_file));
         # print(clfSVM.predict(object_to_column(json.load(data_file))))
+
     return
 
 # predict one data point and measure the time it takes
@@ -47,40 +51,13 @@ def predictEmoji(clientData):
     # returns string with emoji name, e.g. "joy"
     return clfSVM.predict(dataColumn)
 
-# function to get a flat structure
-def flatten_json(y):
-    out = {}
-
-    def flatten(x, name=''):
-        if type(x) is dict:
-            for a in x:
-                flatten(x[a], name + a + '_')
-        elif type(x) is list:
-            i = 0
-            for a in x:
-                flatten(a, name + str(i) + '_')
-                i += 1
-        else:
-            out[str(name[:-1])] = str(x)
-
-    flatten(y)
-    return out
-
+# convert nested json structure to single column
 def object_to_column(dataObject):
     dataColumn = []
-    # jsonObject = json.loads(dataObject)
-    # print("==================================================")
-    # print(dataObject)
-    # print("==================================================")
-    # print(dataObject["emojis"])
-    # print("==================================================")
     del dataObject["emojis"]["dominantEmoji"]
-    # print(dataObject["emojis"])
     flatObject = flatten_json(dataObject)
     for key, value in flatObject.items():
         dataColumn.append(float(value))
-    # print("==================================================")
-    # print(dataColumn)
     return dataColumn
 
 # convert json data in for ML suitable form
@@ -111,6 +88,25 @@ def get_training_data(path):
                             labels.append(emoji)
                         dataColumn = []
     return (dataMatrix, labels)
+
+# function to get a flat structure
+def flatten_json(y):
+    out = {}
+
+    def flatten(x, name=''):
+        if type(x) is dict:
+            for a in x:
+                flatten(x[a], name + a + '_')
+        elif type(x) is list:
+            i = 0
+            for a in x:
+                flatten(a, name + str(i) + '_')
+                i += 1
+        else:
+            out[str(name[:-1])] = str(x)
+
+    flatten(y)
+    return out
 
 # Outlier detection
 def gammaidx(X, k):
