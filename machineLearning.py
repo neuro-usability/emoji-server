@@ -2,7 +2,6 @@
 
 import os
 import json
-import time
 import numpy as np
 from sklearn import svm
 import scipy.spatial
@@ -17,7 +16,7 @@ amountComponents = 20
 
 def createModel():
     print("started creating Model...")
-    global clfSVM
+    global clfSVM, X, Y
 
     # get data
     (X, Y) = get_training_data(path)
@@ -37,7 +36,7 @@ def createModel():
     # fit SVM model
     clfSVM.fit(X,Y)
     print("done creating Model! \n")
-    
+
     # with open("./test.json") as data_file:
         # print(data_file);
         # print(json.load(data_file));
@@ -47,9 +46,21 @@ def createModel():
 
 # predict one data point and measure the time it takes
 def predictEmoji(clientData):
+    global predictedEmoji
+    # convert json object to data structure for ML
     dataColumn = object_to_column(clientData)
-    # returns string with emoji name, e.g. "joy"
-    return clfSVM.predict(dataColumn)
+    # predict emoji
+    predictedEmoji = clfSVM.predict(dataColumn)
+    # find the k nearest cluster
+    nearestEmoji = find_nearest_cluster(dataColumn, 5)
+    # returns strings with emoji names, e.g. ["joy", "unanmused", ...]
+    result = list(predictedEmoji)
+    # append nearest cluster emojis
+    for counter in range(4):
+        result.append(nearestEmoji[counter])
+#    print('EMOJILIST', result)
+    return result
+
 
 # convert nested json structure to single column
 def object_to_column(dataObject):
@@ -130,3 +141,45 @@ def gammaidx(X, k):
     #calculates mean over coloums
     y = np.mean(dist[rowIdx,idx], axis=1)
     return y
+
+# predict the k'th clostest cluster
+def find_nearest_cluster(dataColumn, k):
+    # find all data points for all clusters and calculate the mean respectively
+    # for each cluster we need #features mean values
+    X_mean = np.zeros((np.unique(Y).shape[0], X.shape[1]))
+    # go through all cluster = emoji name
+    for emojiName in np.unique(Y):
+        Y_indices = []
+        # go through all data points and check if they belong to cluster #counter
+        for i, j in enumerate(Y):
+            # if value in Y equals #counter
+            if j == emojiName:
+                # append index to Y_indices
+                Y_indices.append(i)
+        # when searching through all data points calculate mean of cluster
+        clusterNumber = list(np.unique(Y)).index(emojiName)
+#        print("clusternum", clusterNumber)
+#        print("size X", X.shape)
+#        print("size X_mean", X_mean.shape)
+#        print("size Y_indices", np.asarray(Y_indices).shape)
+        X_mean[clusterNumber,:] = np.mean(X[Y_indices,:], axis=0)
+    
+    #%% find out and return k nearest cluster
+    # convert list to array
+    dataColumn = np.asarray(dataColumn)
+    # reshape array
+    dataColumn = dataColumn.reshape(1,dataColumn.shape[0])
+    # calculate distances to from dataColumn to each cluster
+    dist = scipy.spatial.distance.cdist(dataColumn, X_mean)
+#    print("shape of dist", dist.shape)
+#    print("dist", dist)
+    #sort the indices of all points by distance descending
+    #cut the matrix to k entrys for each data point
+    idx = np.argsort(dist)[:,:k]
+#    print("indices after sorting and cutting", idx)
+    tmpEmoList = list(np.unique(Y)[idx][0])
+#    print("nearest five", tmpEmoList)
+    # remove already predicted emoji from list
+    tmpEmoList.remove(predictedEmoji)
+#    print("nearest four", tmpEmoList)
+    return tmpEmoList

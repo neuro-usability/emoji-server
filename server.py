@@ -24,7 +24,7 @@ class myHandler(BaseHTTPRequestHandler):
 		self.send_header('Content-type','text/plain')
 		self.send_header("Access-Control-Allow-Origin", "*")
 		self.end_headers()
-		self.wfile.write(json.dumps(predictedEmoji.tolist()).encode())
+		self.wfile.write(json.dumps(predictedEmoji).encode())
 		return
 
 try:
